@@ -1,12 +1,8 @@
 {
     "current_rate": {
-        "date": "2025-06-30",
-        "usd_bcv": 107.62,
-        "eur_bcv": 126.19
-    },
-    "next_rate": {
         "date": "2025-07-01",
         "usd_bcv": 108.18,
         "eur_bcv": 127.13
-    }
+    },
+    "next_rate": null
 }

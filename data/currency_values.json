@@ -4,5 +4,9 @@
         "usd_bcv": 115.84,
         "eur_bcv": 135.34
     },
-    "next_rate": null
+    "next_rate": {
+        "date": "2025-07-16",
+        "usd_bcv": 116.81,
+        "eur_bcv": 135.67
+    }
 }

@@ -4,5 +4,9 @@
         "usd_bcv": 128.24,
         "eur_bcv": 148.2
     },
-    "next_rate": null
+    "next_rate": {
+        "date": "2025-08-07",
+        "usd_bcv": 129.05,
+        "eur_bcv": 150.24
+    }
 }

@@ -4,5 +4,9 @@
         "usd_bcv": 455.25,
         "eur_bcv": 524.5
     },
-    "next_rate": null
+    "next_rate": {
+        "date": "2026-03-23",
+        "usd_bcv": 457.07,
+        "eur_bcv": 527.79
+    }
 }

@@ -1,12 +1,8 @@
 {
     "current_rate": {
-        "date": "2026-04-28",
-        "usd_bcv": 485.22,
-        "eur_bcv": 569.29
-    },
-    "next_rate": {
         "date": "2026-04-29",
         "usd_bcv": 486.19,
         "eur_bcv": 569.42
-    }
+    },
+    "next_rate": null
 }

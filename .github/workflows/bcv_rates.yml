@@ -45,7 +45,7 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
 
-          git add data/current.json data/next.json
+          git add -A data/
           git commit -m "automated: update rates values" || echo "No changes to commit"
           git push
         env:

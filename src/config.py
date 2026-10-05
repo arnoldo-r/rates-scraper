@@ -1,36 +1,30 @@
+from __future__ import annotations
+
 import os
-import pytz
+from dataclasses import dataclass
+
 from dotenv import load_dotenv
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-import requests
 
-# Suppress InsecureRequestWarning from urllib3
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+@dataclass(frozen=True)
+class Settings:
+    bcv_url: str
+    timezone: str
+    date_selector: str
+    usd_selector: str
+    eur_selector: str
 
-# Load environment variables from .env file
-load_dotenv()
+def _required(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise SystemExit(f"Missing environment variable: {name}")
+    return value
 
-# Get the scraping URL from environment variables
-BCV_URL = os.getenv("BCV_URL")
-if not BCV_URL:
-    print("Error: Scraping URL not configured in .env")
-    exit(1)
-
-# Get the local timezone string from environment variables
-TIMEZONE_STR = os.getenv("LOCAL_TIMEZONE")
-if not TIMEZONE_STR:
-    print("Error: Local timezone not configured in .env")
-    exit(1)
-
-# Define the local timezone
-LOCAL_TZ = pytz.timezone(TIMEZONE_STR)
-
-# Get CSS selectors from environment variables
-BCV_DATE_SELECTOR = os.getenv("BCV_DATE_SELECTOR")
-BCV_USD_SELECTOR = os.getenv("BCV_USD_SELECTOR")
-BCV_EUR_SELECTOR = os.getenv("BCV_EUR_SELECTOR")
-
-# Basic validation for selectors
-if not all([BCV_DATE_SELECTOR, BCV_USD_SELECTOR, BCV_EUR_SELECTOR]):
-    print("Error: CSS selectors are not configured in .env")
-    exit(1)
+def load_settings() -> Settings:
+    load_dotenv()
+    return Settings(
+        bcv_url=_required("BCV_URL"),
+        timezone=_required("LOCAL_TIMEZONE"),
+        date_selector=_required("BCV_DATE_SELECTOR"),
+        usd_selector=_required("BCV_USD_SELECTOR"),
+        eur_selector=_required("BCV_EUR_SELECTOR"),
+    )

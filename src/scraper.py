@@ -1,56 +1,61 @@
+from __future__ import annotations
+
+import datetime
+from decimal import InvalidOperation
+
 import requests
 from bs4 import BeautifulSoup
-import datetime
-from config import BCV_URL, BCV_DATE_SELECTOR, BCV_USD_SELECTOR, BCV_EUR_SELECTOR
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-def scrape_bcv_data():
-    """Scrapes EUR and USD values and their timestamp from the configured website."""
+from config import Settings
+from data_manager import Rate, _rate_to_cents
+
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+def _text(soup: BeautifulSoup, selector: str) -> str | None:
+    node = soup.select_one(selector)
+    if node is None:
+        return None
+    text = node.get_text(strip=True).replace(",", ".")
+    return text or None
+
+def _content(soup: BeautifulSoup, selector: str) -> str | None:
+    node = soup.select_one(selector)
+    if node is None:
+        return None
+    value = node.attrs.get("content")
+    if not isinstance(value, str) or not value:
+        return None
+    return value
+
+def scrape_bcv_data(settings: Settings) -> Rate | None:
     try:
-        # Keep verify=False to bypass SSL certificate verification
-        response = requests.get(BCV_URL, timeout=10, verify=False)
+        response = requests.get(
+            settings.bcv_url,
+            timeout=10,
+            verify=False,
+            allow_redirects=False,
+        )
+        if 300 <= response.status_code < 400:
+            print("Error fetching BCV data: Redirect")
+            return None
         response.raise_for_status()
 
-        soup = BeautifulSoup(response.text, 'html.parser')
-
-        usd_value = None
-        eur_value = None
-        timestamp_str = None
-
-        # Extract timestamp
-        date_span = soup.select_one(BCV_DATE_SELECTOR)
-        if date_span and 'content' in date_span.attrs:
-            timestamp_str = date_span['content']
-
-        # Find USD value
-        dolar_div = soup.select_one(BCV_USD_SELECTOR)
-        if dolar_div:
-            dolar_text = dolar_div.text.strip()
-            usd_value = float(dolar_text.replace(',', '.'))
-
-        # Find EUR value
-        euro_div = soup.select_one(BCV_EUR_SELECTOR)
-        if euro_div:
-            euro_text = euro_div.text.strip()
-            eur_value = float(euro_text.replace(',', '.'))
-
-        # Parse date string to a date object
-        scraped_date = None
-        if timestamp_str:
-            try:
-                dt_object = datetime.datetime.fromisoformat(timestamp_str)
-                scraped_date = dt_object.date()
-            except ValueError:
-                print("Warning: Could not parse timestamp from page.")
-
-        return {
-            "scraped_date": scraped_date,
-            "usd_bcv": usd_value,
-            "eur_bcv": eur_value
-        }
-
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching data from the configured URL: {e}")
+        soup = BeautifulSoup(response.text, "html.parser")
+        date_text = _content(soup, settings.date_selector)
+        usd_text = _text(soup, settings.usd_selector)
+        eur_text = _text(soup, settings.eur_selector)
+        if date_text is None or usd_text is None or eur_text is None:
+            print("Error processing BCV data: MissingValue")
+            return None
+        return Rate(
+            datetime.datetime.fromisoformat(date_text).date(),
+            _rate_to_cents(usd_text),
+            _rate_to_cents(eur_text),
+        )
+    except requests.RequestException as exc:
+        print(f"Error fetching BCV data: {type(exc).__name__}")
         return None
-    except Exception as e:
-        print(f"Error processing data from the configured URL: {e}")
+    except (ValueError, InvalidOperation, ArithmeticError) as exc:
+        print(f"Error processing BCV data: {type(exc).__name__}")
         return None
